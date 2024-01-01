@@ -7,7 +7,7 @@
 
 <script setup name="Dashboard">
 import { timestampFormat, titleWithDuplicate } from '@/utils'
-import { ElMessage } from 'element-plus'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import { downloadFile } from '@/utils/request'
 import { useCacheJoin } from '@/hooks/useCacheJoin'
 import { useUserStoreWithOut } from '@/store/modules/user'
@@ -22,9 +22,10 @@ const cacheJoin = useCacheJoin()
 const tableRef = ref(null)
 const dialogFormRef = ref(null)
 
+const free = [0, 8]
 const music_type = {
   0: '免费',
-  1: 'VIP可听',
+  1: '试听',
   8: '免费',
   4: '付费',
 }
@@ -57,6 +58,7 @@ const downloadDialog = reactive({
   row: null,
   form: {
     level: 'exhigh',
+    fee: false,
   },
 })
 
@@ -93,7 +95,19 @@ const download = async () => {
   try {
     const { row } = downloadDialog
     if (!row) throw new Error('下载文件错误：未指定下载条目')
-    const { level } = downloadDialog.form
+    const { fee, level } = downloadDialog.form
+    if (!fee && !free.includes(row.fee)) {
+      const confirmText = await ElMessageBox.confirm(
+        `该歌曲为${music_type[row.fee]}歌曲，是否继续下载？`,
+        '提示',
+        {
+          confirmButtonText: '下载',
+          cancelButtonText: '取消',
+          type: 'warning',
+        },
+      ).catch((err) => err)
+      if (confirmText !== 'confirm') return
+    }
     const params = { id: row.id, level }
     const { code, data } = await API_song_url(params)
     if (code !== 200) throw new Error('获取歌曲url失败')
@@ -116,9 +130,22 @@ const download = async () => {
 const batchClick = async () => {
   const index = activeIndex.index
   const selection = tableRef.value[index].getSelectionRows()
-  const { level } = downloadDialog.form
+  const { fee, level } = downloadDialog.form
+
+  downloadDialog.visible = false
+  ElMessage.success(`正在下载，请勿关闭页面，下载完成后会自动提示。`)
+  const breakCount = selection.filter((item) => !free.includes(item.fee)).length
+  if (!fee && breakCount > 0) {
+    setTimeout(() => {
+      ElMessage.warning(
+        `共选择${selection.length}首，将跳过${breakCount}首试听歌曲`,
+      )
+    }, 2000)
+  }
+
   for (const item of selection) {
     try {
+      if (!fee && !free.includes(item.fee)) continue
       const params = { id: item.id, level }
       const response = await API_song_url(params)
       const first = response.data[0]
@@ -133,11 +160,9 @@ const batchClick = async () => {
       console.error(error)
       ElMessage.error('下载文件错误：' + error)
     } finally {
-      downloadDialog.visible = false
       tableRef.value[index].toggleRowSelection(item, false)
     }
   }
-  ElMessage.warning(`正在下载...`)
 }
 
 const clearRecord = () => {
@@ -166,6 +191,10 @@ const downloadBefore = (row = null) => {
 const downloadDialogClose = () => {
   dialogFormRef.value.resetFields()
   downloadDialog.row = null
+  downloadDialog.form = {
+    level: 'exhigh',
+    fee: false,
+  }
 }
 
 onMounted(getList)
@@ -182,7 +211,7 @@ onMounted(getList)
         <el-button type="primary" @click="getList">刷新列表</el-button>
         <el-button
           type="success"
-          :disabled="sels < 1"
+          :disabled="table.sels.length < 1"
           @click="downloadBefore()"
         >
           批量下载
@@ -201,11 +230,11 @@ onMounted(getList)
           height="100%"
           :header-cell-style="{ background: '#cbd5e1' }"
           :row-style="tableRowStyle"
-          :selection-change="(sels) => (table.sels = sels)"
+          @selection-change="(sels) => (table.sels = sels)"
         >
           <el-table-column type="index" label="#" />
           <el-table-column type="selection" width="50" />
-          <el-table-column prop="name" label="歌曲表题" />
+          <el-table-column prop="name" label="歌曲标题" />
 
           <el-table-column prop="dt" label="时长">
             <template #default="{ row, column: col }">
@@ -242,6 +271,10 @@ onMounted(getList)
     @close="downloadDialogClose"
   >
     <el-form ref="dialogFormRef" :model="downloadDialog.form">
+      <el-form-item label="下载试听">
+        <el-switch v-model="downloadDialog.form.fee" />
+      </el-form-item>
+
       <el-form-item label="音质等级">
         <el-radio-group v-model="downloadDialog.form.level">
           <el-radio
