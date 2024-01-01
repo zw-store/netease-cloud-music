@@ -269,7 +269,7 @@ onMounted(getList)
 </template>
 
 <style lang="scss" scoped>
-::v-deep .el-tabs__content {
+:deep(.el-tabs__content) {
   height: 100%;
 }
 </style>
