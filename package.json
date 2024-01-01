@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:serve": "node ./server/app.js",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint src",
@@ -18,10 +19,15 @@
     "build:pro": "vue-tsc && vite build --mode production"
   },
   "dependencies": {
+    "axios": "^1.6.3",
     "element-plus": "^2.3.3",
     "lodash": "^4.17.21",
+    "nprogress": "^0.2.0",
+    "pinia": "^2.1.7",
     "resetcss": "^1.0.3",
-    "vue": "^3.2.47"
+    "vue": "^3.2.47",
+    "vue-router": "^4.2.5",
+    "web-storage-cache": "^1.1.1"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.21.3",
@@ -42,6 +48,7 @@
     "eslint-plugin-vue": "^9.10.0",
     "husky": "^8.0.0",
     "mockjs": "^1.1.0",
+    "pinia-plugin-persistedstate": "^3.2.1",
     "postcss": "^8.4.21",
     "postcss-html": "^1.5.0",
     "postcss-scss": "^4.0.6",
