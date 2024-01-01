@@ -1229,7 +1229,6 @@ let AudioFingerprintRuntime = () => {
   for (var t = new Array(256), e = 0; e < 256; ++e)
     t[e] = String.fromCharCode(e)
   st = t
-
   ;(mt = o.BindingError = yt(Error, 'BindingError')),
     (gt = o.InternalError = yt(Error, 'InternalError')),
     (Rt.prototype.isAliasOf = Ct),
