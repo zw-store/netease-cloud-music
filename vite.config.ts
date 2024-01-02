@@ -98,6 +98,10 @@ export default defineConfig(({ command, mode }) => {
       },
     },
     server: {
+      open: false,
+      https: false,
+      port: env.VITE_APP_PORT || 5173,
+      host: '0.0.0.0',
       proxy: {
         [env.VITE_APP_BASE_API]: {
           target: env.VITE_PROXY_URL,

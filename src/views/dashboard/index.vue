@@ -25,7 +25,7 @@ const dialogFormRef = ref(null)
 const free = [0, 8]
 const music_type = {
   0: '免费',
-  1: '试听',
+  1: 'VIP',
   8: '免费',
   4: '付费',
 }
@@ -168,7 +168,6 @@ const batchClick = async () => {
 const clearRecord = () => {
   cacheJoin.removeItem(activeIndex.label)
   ElMessage.success('清空成功')
-  tableRef.value[activeIndex.index].doLayout()
 }
 
 const tableRowStyle = ({ row }) => {
